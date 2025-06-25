@@ -35,54 +35,57 @@
   </div>
 
 <script>
-//Your code goes here 
-	// Your code here.
-const container = document.querySelector('.items');
-const items = document.querySelectorAll('.item');
+  const container = document.querySelector('.items');
+  const items = document.querySelectorAll('.item');
 
-let selected = null;
-let offsetX = 0;
-let offsetY = 0;
+  let selectedItem = null;
+  let offsetX = 0;
+  let offsetY = 0;
 
-items.forEach(item => {
-  // Initial positioning based on grid
-  const index = parseInt(item.textContent) - 1;
-  const col = index % 5;
-  const row = Math.floor(index / 5);
-  item.style.left = `${col * 100}px`;
-  item.style.top = `${row * 100}px`;
+  // Set initial position for all items
+  items.forEach((item, index) => {
+    item.style.position = 'absolute';
+    const left = index * 210; // spacing between cubes
+    const top = 0;
+    item.style.left = `${left}px`;
+    item.style.top = `${top}px`;
 
-  item.addEventListener('mousedown', (e) => {
-    selected = item;
-    offsetX = e.clientX - item.offsetLeft;
-    offsetY = e.clientY - item.offsetTop;
-    item.style.zIndex = 1000;
+    item.addEventListener('mousedown', (e) => {
+      selectedItem = item;
+      const rect = item.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      offsetX = e.clientX - rect.left + container.scrollLeft - containerRect.left;
+      offsetY = e.clientY - rect.top - containerRect.top;
+      item.style.zIndex = 1000;
+    });
   });
-});
 
-document.addEventListener('mousemove', (e) => {
-  if (selected) {
-    const containerRect = container.getBoundingClientRect();
-    let x = e.clientX - containerRect.left - offsetX;
-    let y = e.clientY - containerRect.top - offsetY;
+  document.addEventListener('mousemove', (e) => {
+    if (selectedItem) {
+      const containerRect = container.getBoundingClientRect();
+      const x = e.clientX - containerRect.left - offsetX + container.scrollLeft;
+      const y = e.clientY - containerRect.top - offsetY;
 
-    // Clamp within boundaries
-    x = Math.max(0, Math.min(container.clientWidth - selected.offsetWidth, x));
-    y = Math.max(0, Math.min(container.clientHeight - selected.offsetHeight, y));
+      // Boundaries
+      const maxX = container.scrollWidth - selectedItem.offsetWidth;
+      const maxY = container.clientHeight - selectedItem.offsetHeight;
 
-    selected.style.left = `${x}px`;
-    selected.style.top = `${y}px`;
-  }
-});
+      const clampedX = Math.max(0, Math.min(maxX, x));
+      const clampedY = Math.max(0, Math.min(maxY, y));
 
-document.addEventListener('mouseup', () => {
-  if (selected) {
-    selected.style.zIndex = 1;
-    selected = null;
-  }
-});
+      selectedItem.style.left = `${clampedX}px`;
+      selectedItem.style.top = `${clampedY}px`;
+    }
+  });
 
+  document.addEventListener('mouseup', () => {
+    if (selectedItem) {
+      selectedItem.style.zIndex = 1;
+      selectedItem = null;
+    }
+  });
 </script>
+
 
   </body>
 </html>

@@ -36,6 +36,52 @@
 
 <script>
 //Your code goes here 
+	// Your code here.
+const container = document.querySelector('.items');
+const items = document.querySelectorAll('.item');
+
+let selected = null;
+let offsetX = 0;
+let offsetY = 0;
+
+items.forEach(item => {
+  // Initial positioning based on grid
+  const index = parseInt(item.textContent) - 1;
+  const col = index % 5;
+  const row = Math.floor(index / 5);
+  item.style.left = `${col * 100}px`;
+  item.style.top = `${row * 100}px`;
+
+  item.addEventListener('mousedown', (e) => {
+    selected = item;
+    offsetX = e.clientX - item.offsetLeft;
+    offsetY = e.clientY - item.offsetTop;
+    item.style.zIndex = 1000;
+  });
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (selected) {
+    const containerRect = container.getBoundingClientRect();
+    let x = e.clientX - containerRect.left - offsetX;
+    let y = e.clientY - containerRect.top - offsetY;
+
+    // Clamp within boundaries
+    x = Math.max(0, Math.min(container.clientWidth - selected.offsetWidth, x));
+    y = Math.max(0, Math.min(container.clientHeight - selected.offsetHeight, y));
+
+    selected.style.left = `${x}px`;
+    selected.style.top = `${y}px`;
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  if (selected) {
+    selected.style.zIndex = 1;
+    selected = null;
+  }
+});
+
 </script>
 
   </body>

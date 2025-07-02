@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Click and Drag</title>
+  <title>Click and Drag Scroll</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -34,80 +34,36 @@
     <div class="item item25">25</div>
   </div>
 
-<script>
-  const container = document.querySelector('.items');
-  const items = document.querySelectorAll('.item');
+  <script>
+    const container = document.querySelector('.items');
+    let isDown = false;
+    let startX;
+    let scrollLeft;
 
-  let selectedItem = null;
-  let offsetX = 0;
-  let offsetY = 0;
-  let initialMouseX = 0;
-  let initialMouseY = 0;
+    container.addEventListener('mousedown', (e) => {
+      isDown = true;
+      container.classList.add('active');
+      startX = e.pageX - container.offsetLeft;
+      scrollLeft = container.scrollLeft;
+    });
 
-  items.forEach(item => {
-    item.style.position = 'relative';
-    item.style.zIndex = 1;
+    container.addEventListener('mouseleave', () => {
+      isDown = false;
+      container.classList.remove('active');
+    });
 
-    let startLeft = 0;
-    let startTop = 0;
+    container.addEventListener('mouseup', () => {
+      isDown = false;
+      container.classList.remove('active');
+    });
 
-    item.addEventListener('mousedown', (e) => {
+    container.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
       e.preventDefault();
-      selectedItem = item;
-      const rect = item.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-
-      initialMouseX = e.clientX;
-      initialMouseY = e.clientY;
-
-      startLeft = item.offsetLeft;
-      startTop = item.offsetTop;
-
-      offsetX = e.clientX - rect.left + container.scrollLeft - containerRect.left;
-      offsetY = e.clientY - rect.top - containerRect.top;
-
-      item.style.zIndex = 1000;
-      item.style.pointerEvents = 'none'; // Prevent selection issues
+      const x = e.pageX - container.offsetLeft;
+      const walk = (x - startX) * 1.5; // scroll speed
+      container.scrollLeft = scrollLeft - walk;
     });
-
-    document.addEventListener('mousemove', (e) => {
-      if (selectedItem) {
-        const dx = e.clientX - initialMouseX;
-        const dy = e.clientY - initialMouseY;
-
-        // Clamp to container bounds
-        const maxX = container.scrollWidth - selectedItem.offsetWidth;
-        const maxY = container.clientHeight - selectedItem.offsetHeight;
-
-        const newX = Math.min(Math.max(0, startLeft + dx), maxX);
-        const newY = Math.min(Math.max(0, startTop + dy), maxY);
-
-        selectedItem.style.transform = `translate(${newX - startLeft}px, ${newY - startTop}px)`;
-      }
-    });
-
-    document.addEventListener('mouseup', () => {
-      if (selectedItem) {
-        // Finalize position
-        const transform = selectedItem.style.transform;
-        const match = transform.match(/translate\((.*)px,\s*(.*)px\)/);
-        if (match) {
-          const tx = parseFloat(match[1]);
-          const ty = parseFloat(match[2]);
-          selectedItem.style.left = `${selectedItem.offsetLeft + tx}px`;
-          selectedItem.style.top = `${selectedItem.offsetTop + ty}px`;
-        }
-
-        selectedItem.style.transform = '';
-        selectedItem.style.zIndex = 1;
-        selectedItem.style.pointerEvents = 'auto';
-        selectedItem = null;
-      }
-    });
-  });
-
-</script>
-
-
-  </body>
+  </script>
+</body>
 </html>

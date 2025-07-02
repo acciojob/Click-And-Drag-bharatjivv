@@ -41,49 +41,71 @@
   let selectedItem = null;
   let offsetX = 0;
   let offsetY = 0;
+  let initialMouseX = 0;
+  let initialMouseY = 0;
 
-  // Set initial position for all items
-  items.forEach((item, index) => {
-    item.style.position = 'absolute';
-    const left = index * 210; // spacing between cubes
-    const top = 0;
-    item.style.left = `${left}px`;
-    item.style.top = `${top}px`;
+  items.forEach(item => {
+    item.style.position = 'relative';
+    item.style.zIndex = 1;
+
+    let startLeft = 0;
+    let startTop = 0;
 
     item.addEventListener('mousedown', (e) => {
+      e.preventDefault();
       selectedItem = item;
       const rect = item.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
+
+      initialMouseX = e.clientX;
+      initialMouseY = e.clientY;
+
+      startLeft = item.offsetLeft;
+      startTop = item.offsetTop;
+
       offsetX = e.clientX - rect.left + container.scrollLeft - containerRect.left;
       offsetY = e.clientY - rect.top - containerRect.top;
+
       item.style.zIndex = 1000;
+      item.style.pointerEvents = 'none'; // Prevent selection issues
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (selectedItem) {
+        const dx = e.clientX - initialMouseX;
+        const dy = e.clientY - initialMouseY;
+
+        // Clamp to container bounds
+        const maxX = container.scrollWidth - selectedItem.offsetWidth;
+        const maxY = container.clientHeight - selectedItem.offsetHeight;
+
+        const newX = Math.min(Math.max(0, startLeft + dx), maxX);
+        const newY = Math.min(Math.max(0, startTop + dy), maxY);
+
+        selectedItem.style.transform = `translate(${newX - startLeft}px, ${newY - startTop}px)`;
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (selectedItem) {
+        // Finalize position
+        const transform = selectedItem.style.transform;
+        const match = transform.match(/translate\((.*)px,\s*(.*)px\)/);
+        if (match) {
+          const tx = parseFloat(match[1]);
+          const ty = parseFloat(match[2]);
+          selectedItem.style.left = `${selectedItem.offsetLeft + tx}px`;
+          selectedItem.style.top = `${selectedItem.offsetTop + ty}px`;
+        }
+
+        selectedItem.style.transform = '';
+        selectedItem.style.zIndex = 1;
+        selectedItem.style.pointerEvents = 'auto';
+        selectedItem = null;
+      }
     });
   });
 
-  document.addEventListener('mousemove', (e) => {
-    if (selectedItem) {
-      const containerRect = container.getBoundingClientRect();
-      const x = e.clientX - containerRect.left - offsetX + container.scrollLeft;
-      const y = e.clientY - containerRect.top - offsetY;
-
-      // Boundaries
-      const maxX = container.scrollWidth - selectedItem.offsetWidth;
-      const maxY = container.clientHeight - selectedItem.offsetHeight;
-
-      const clampedX = Math.max(0, Math.min(maxX, x));
-      const clampedY = Math.max(0, Math.min(maxY, y));
-
-      selectedItem.style.left = `${clampedX}px`;
-      selectedItem.style.top = `${clampedY}px`;
-    }
-  });
-
-  document.addEventListener('mouseup', () => {
-    if (selectedItem) {
-      selectedItem.style.zIndex = 1;
-      selectedItem = null;
-    }
-  });
 </script>
 
 
